@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BackgroundChanger")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f34c9039d477cb92209e3896a10e9a96dbe819ed")]
 [assembly: System.Reflection.AssemblyProductAttribute("BackgroundChanger")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BackgroundChanger")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -20,6 +20,16 @@ namespace BackgroundChanger
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
 
+        // Import Windows API functions to hide/show console window
+        [DllImport("kernel32.dll")]
+        static extern IntPtr GetConsoleWindow();
+
+        [DllImport("user32.dll")]
+        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        const int SW_HIDE = 0;
+        const int SW_SHOW = 5;
+
         // Import Windows API functions for monitor enumeration
         [DllImport("user32.dll")]
         static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, MonitorEnumDelegate lpfnEnum, IntPtr dwData);
@@ -51,17 +61,56 @@ namespace BackgroundChanger
             public int Bottom;
         }
 
+        static bool _silentMode = false;
+
+        static void WriteOutput(string message)
+        {
+            if (!_silentMode)
+            {
+                Console.WriteLine(message);
+            }
+        }
+
+        static void HideConsoleWindow()
+        {
+            IntPtr consoleWindow = GetConsoleWindow();
+            if (consoleWindow != IntPtr.Zero)
+            {
+                ShowWindow(consoleWindow, SW_HIDE);
+            }
+        }
+
+        static void ShowConsoleWindow()
+        {
+            IntPtr consoleWindow = GetConsoleWindow();
+            if (consoleWindow != IntPtr.Zero)
+            {
+                ShowWindow(consoleWindow, SW_SHOW);
+            }
+        }
+
         static void Main(string[] args)
         {
             try
             {
+                // Check for silent/hidden mode
+                _silentMode = args.Contains("--silent") || args.Contains("--hide") || args.Contains("-s");
+                
+                if (_silentMode)
+                {
+                    HideConsoleWindow();
+                    // Remove the silent flag from args for further processing
+                    args = args.Where(arg => arg != "--silent" && arg != "--hide" && arg != "-s").ToArray();
+                }
+
                 if (args.Length < 1)
                 {
-                    Console.WriteLine("Usage: BackgroundChanger <image_path> [monitor_index]");
-                    Console.WriteLine("  image_path: Path to the .png or .jpg image file");
-                    Console.WriteLine("  monitor_index: Optional monitor index (0-based, default: 0 for primary monitor)");
-                    Console.WriteLine();
-                    Console.WriteLine("Available monitors:");
+                    WriteOutput("Usage: BackgroundChanger <image_path> [monitor_index] [--silent]");
+                    WriteOutput("  image_path: Path to the .png or .jpg image file");
+                    WriteOutput("  monitor_index: Optional monitor index (0-based, default: 0 for primary monitor)");
+                    WriteOutput("  --silent, --hide, -s: Hide the console window during execution");
+                    WriteOutput("");
+                    WriteOutput("Available monitors:");
                     ListMonitors();
                     return;
                 }
@@ -71,46 +120,46 @@ namespace BackgroundChanger
 
                 if (!File.Exists(imagePath))
                 {
-                    Console.WriteLine($"Error: Image file '{imagePath}' not found.");
+                    WriteOutput($"Error: Image file '{imagePath}' not found.");
                     return;
                 }
 
                 string extension = Path.GetExtension(imagePath).ToLower();
                 if (extension != ".png" && extension != ".jpg" && extension != ".jpeg")
                 {
-                    Console.WriteLine("Error: Only .png and .jpg/.jpeg files are supported.");
+                    WriteOutput("Error: Only .png and .jpg/.jpeg files are supported.");
                     return;
                 }
 
-                Console.WriteLine($"Setting background image: {imagePath}");
-                Console.WriteLine($"Target monitor index: {monitorIndex}");
+                WriteOutput($"Setting background image: {imagePath}");
+                WriteOutput($"Target monitor index: {monitorIndex}");
 
                 // Get monitor information
                 var monitors = GetMonitors();
                 if (monitorIndex >= monitors.Count)
                 {
-                    Console.WriteLine($"Error: Monitor index {monitorIndex} not found. Available monitors: 0-{monitors.Count - 1}");
+                    WriteOutput($"Error: Monitor index {monitorIndex} not found. Available monitors: 0-{monitors.Count - 1}");
                     return;
                 }
 
                 var targetMonitor = monitors[monitorIndex];
-                Console.WriteLine($"Target monitor: {targetMonitor.Width}x{targetMonitor.Height} at ({targetMonitor.X}, {targetMonitor.Y})");
+                WriteOutput($"Target monitor: {targetMonitor.Width}x{targetMonitor.Height} at ({targetMonitor.X}, {targetMonitor.Y})");
 
                 // Try modern API first
-                Console.WriteLine("Attempting to use modern per-monitor wallpaper API...");
+                WriteOutput("Attempting to use modern per-monitor wallpaper API...");
                 if (TrySetWallpaperModern(imagePath, monitorIndex))
                 {
-                    Console.WriteLine("Successfully set wallpaper using modern API!");
+                    WriteOutput("Successfully set wallpaper using modern API!");
                 }
                 else
                 {
-                    Console.WriteLine("Modern API failed, falling back to combined wallpaper approach...");
+                    WriteOutput("Modern API failed, falling back to combined wallpaper approach...");
                     
                     // Process and set the background for all monitors
                     string processedImagePath = ProcessImageForAllMonitors(imagePath, monitors, monitorIndex);
                     SetWallpaper(processedImagePath);
 
-                    Console.WriteLine("Background image set successfully using combined wallpaper!");
+                    WriteOutput("Background image set successfully using combined wallpaper!");
                     
                     // Clean up temporary file if created
                     if (processedImagePath != imagePath && File.Exists(processedImagePath))
@@ -121,7 +170,7 @@ namespace BackgroundChanger
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                WriteOutput($"Error: {ex.Message}");
                 Environment.Exit(1);
             }
         }
@@ -129,12 +178,12 @@ namespace BackgroundChanger
         static void ListMonitors()
         {
             var monitors = GetMonitors();
-            Console.WriteLine($"Total monitors detected: {monitors.Count}");
+            WriteOutput($"Total monitors detected: {monitors.Count}");
             for (int i = 0; i < monitors.Count; i++)
             {
                 var monitor = monitors[i];
                 string primary = monitor.IsPrimary ? " (Primary)" : "";
-                Console.WriteLine($"  {i}: {monitor.Width}x{monitor.Height} at ({monitor.X}, {monitor.Y}){primary}");
+                WriteOutput($"  {i}: {monitor.Width}x{monitor.Height} at ({monitor.X}, {monitor.Y}){primary}");
             }
             
             // Show combined desktop bounds
@@ -144,7 +193,7 @@ namespace BackgroundChanger
                 int minY = monitors.Min(m => m.Y);
                 int maxX = monitors.Max(m => m.X + m.Width);
                 int maxY = monitors.Max(m => m.Y + m.Height);
-                Console.WriteLine($"Combined desktop: {maxX - minX}x{maxY - minY} (from {minX},{minY} to {maxX},{maxY})");
+                WriteOutput($"Combined desktop: {maxX - minX}x{maxY - minY} (from {minX},{minY} to {maxX},{maxY})");
             }
         }
 
@@ -180,7 +229,7 @@ namespace BackgroundChanger
                 int totalWidth = maxX - minX;
                 int totalHeight = maxY - minY;
 
-                Console.WriteLine($"Creating combined wallpaper: {totalWidth}x{totalHeight}");
+                WriteOutput($"Creating combined wallpaper: {totalWidth}x{totalHeight}");
 
                 // Create a bitmap that spans all monitors
                 using (var combinedBitmap = new Bitmap(totalWidth, totalHeight))
@@ -222,12 +271,12 @@ namespace BackgroundChanger
                                 // Draw the scaled image on the target monitor
                                 graphics.DrawImage(originalImage, imageX, imageY, newWidth, newHeight);
                                 
-                                Console.WriteLine($"Image drawn on monitor {i} at ({imageX}, {imageY}) with size {newWidth}x{newHeight}");
+                                WriteOutput($"Image drawn on monitor {i} at ({imageX}, {imageY}) with size {newWidth}x{newHeight}");
                             }
                             else
                             {
                                 // This is not the target monitor - fill with black (already done by Clear, but we could add a pattern here)
-                                Console.WriteLine($"Monitor {i} filled with black background");
+                                WriteOutput($"Monitor {i} filled with black background");
                             }
                         }
                     }
@@ -242,8 +291,8 @@ namespace BackgroundChanger
                         File.Delete(verificationPath);
                     combinedBitmap.Save(verificationPath, ImageFormat.Bmp);
                     
-                    Console.WriteLine($"Combined wallpaper saved to: {tempPath}");
-                    Console.WriteLine($"Verification copy saved to: {verificationPath}");
+                    WriteOutput($"Combined wallpaper saved to: {tempPath}");
+                    WriteOutput($"Verification copy saved to: {verificationPath}");
                     return tempPath;
                 }
             }
@@ -265,7 +314,7 @@ namespace BackgroundChanger
                         // Try "Fill" mode instead of "Tile" - this should stretch to fit exactly
                         key.SetValue("WallpaperStyle", "10", RegistryValueKind.String);
                         key.SetValue("TileWallpaper", "0", RegistryValueKind.String);
-                        Console.WriteLine("Set wallpaper style to Fill mode");
+                        WriteOutput("Set wallpaper style to Fill mode");
                     }
                 }
 
@@ -277,14 +326,14 @@ namespace BackgroundChanger
                     throw new Exception("Failed to set wallpaper. Make sure the image file is accessible and valid.");
                 }
             
-                Console.WriteLine("Wallpaper set successfully via Windows API");
+                WriteOutput("Wallpaper set successfully via Windows API");
                 
                 // Force a desktop refresh
                 SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, imagePath, SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error setting wallpaper: {ex.Message}");
+                WriteOutput($"Error setting wallpaper: {ex.Message}");
                 throw;
             }
         }
@@ -319,15 +368,6 @@ namespace BackgroundChanger
         {
         }
 
-        public class MonitorInfo
-        {
-            public int X { get; set; }
-            public int Y { get; set; }
-            public int Width { get; set; }
-            public int Height { get; set; }
-            public bool IsPrimary { get; set; }
-        }
-
         static bool TrySetWallpaperModern(string imagePath, int monitorIndex)
         {
             try
@@ -337,11 +377,11 @@ namespace BackgroundChanger
                 // Get monitor count
                 uint monitorCount;
                 wallpaper.GetMonitorDevicePathCount(out monitorCount);
-                Console.WriteLine($"Modern API detected {monitorCount} monitors");
+                WriteOutput($"Modern API detected {monitorCount} monitors");
                 
                 if (monitorIndex >= monitorCount)
                 {
-                    Console.WriteLine($"Monitor index {monitorIndex} exceeds available monitors ({monitorCount})");
+                    WriteOutput($"Monitor index {monitorIndex} exceeds available monitors ({monitorCount})");
                     return false;
                 }
                 
@@ -352,24 +392,33 @@ namespace BackgroundChanger
                 
                 if (monitorId == null)
                 {
-                    Console.WriteLine("Failed to get monitor device path");
+                    WriteOutput("Failed to get monitor device path");
                     return false;
                 }
                 
-                Console.WriteLine($"Setting wallpaper on monitor: {monitorId}");
+                WriteOutput($"Setting wallpaper on monitor: {monitorId}");
                 
                 // Set wallpaper for specific monitor
                 wallpaper.SetWallpaper(monitorId, imagePath);
-                Console.WriteLine("Wallpaper set using modern API");
+                WriteOutput("Wallpaper set using modern API");
                 
                 Marshal.FreeCoTaskMem(monitorIdPtr);
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Modern API failed: {ex.Message}");
+                WriteOutput($"Modern API failed: {ex.Message}");
                 return false;
             }
+        }
+
+        public class MonitorInfo
+        {
+            public int X { get; set; }
+            public int Y { get; set; }
+            public int Width { get; set; }
+            public int Height { get; set; }
+            public bool IsPrimary { get; set; }
         }
     }
 }

@@ -12,3 +12,4 @@ C:\Code\BackgroundChanger\obj\Debug\net8.0-windows\refint\BackgroundChanger.dll
 C:\Code\BackgroundChanger\obj\Debug\net8.0-windows\BackgroundChanger.pdb
 C:\Code\BackgroundChanger\obj\Debug\net8.0-windows\BackgroundChanger.genruntimeconfig.cache
 C:\Code\BackgroundChanger\obj\Debug\net8.0-windows\ref\BackgroundChanger.dll
+C:\Code\BackgroundChanger\obj\Debug\net8.0-windows\BackgroundChanger.sourcelink.json
