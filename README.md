@@ -32,13 +32,13 @@ BackgroundChanger.exe <image_path> <monitor_index>
 ### Examples
 ```
 # Set background on primary monitor
-dotnet run "C:\Pictures\wallpaper.jpg"
+BackgroundChanger.exe "C:\Pictures\wallpaper.jpg"
 
 # Set background on second monitor (index 1)
-dotnet run "C:\Pictures\wallpaper.png" 1
+BackgroundChanger.exe "C:\Pictures\wallpaper.png" 1
 
 # List available monitors
-dotnet run
+BackgroundChanger.exe
 ```
 
 ## Parameters
