@@ -1,0 +1,14 @@
+C:\Code\BackgroundChanger\bin\Debug\net8.0-windows\BackgroundChanger.exe
+C:\Code\BackgroundChanger\bin\Debug\net8.0-windows\BackgroundChanger.deps.json
+C:\Code\BackgroundChanger\bin\Debug\net8.0-windows\BackgroundChanger.runtimeconfig.json
+C:\Code\BackgroundChanger\bin\Debug\net8.0-windows\BackgroundChanger.dll
+C:\Code\BackgroundChanger\bin\Debug\net8.0-windows\BackgroundChanger.pdb
+C:\Code\BackgroundChanger\obj\Debug\net8.0-windows\BackgroundChanger.GeneratedMSBuildEditorConfig.editorconfig
+C:\Code\BackgroundChanger\obj\Debug\net8.0-windows\BackgroundChanger.AssemblyInfoInputs.cache
+C:\Code\BackgroundChanger\obj\Debug\net8.0-windows\BackgroundChanger.AssemblyInfo.cs
+C:\Code\BackgroundChanger\obj\Debug\net8.0-windows\BackgroundChanger.csproj.CoreCompileInputs.cache
+C:\Code\BackgroundChanger\obj\Debug\net8.0-windows\BackgroundChanger.dll
+C:\Code\BackgroundChanger\obj\Debug\net8.0-windows\refint\BackgroundChanger.dll
+C:\Code\BackgroundChanger\obj\Debug\net8.0-windows\BackgroundChanger.pdb
+C:\Code\BackgroundChanger\obj\Debug\net8.0-windows\BackgroundChanger.genruntimeconfig.cache
+C:\Code\BackgroundChanger\obj\Debug\net8.0-windows\ref\BackgroundChanger.dll

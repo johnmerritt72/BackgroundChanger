@@ -1,0 +1,41 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch BackgroundChanger",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/bin/Debug/net8.0-windows/BackgroundChanger.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Launch BackgroundChanger with arguments",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/bin/Debug/net8.0-windows/BackgroundChanger.dll",
+            "args": ["${input:imagePath}", "${input:monitorIndex}"],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        }
+    ],
+    "inputs": [
+        {
+            "id": "imagePath",
+            "description": "Enter the path to the image file",
+            "default": "",
+            "type": "promptString"
+        },
+        {
+            "id": "monitorIndex",
+            "description": "Enter the monitor index (0-based, default: 0)",
+            "default": "0",
+            "type": "promptString"
+        }
+    ]
+}
